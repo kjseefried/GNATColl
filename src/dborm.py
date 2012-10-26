@@ -2032,7 +2032,13 @@ class Field_Type(object):
                   # memory management, and in particular we can take advantage
                   # of copy-on-write done for Unbounded_String rather than
                   # redo it ourselves (with complex support for multi-tasking)
-                  "text", "json", "String", "String", 'No_Update',
+                  "text", "String", "String", 'No_Update',
+                  "GNAT.Strings.String_Access",
+                  "null", "String_Value (%s, %s)",
+                  "Str_Or_Empty (%s)", "Free (%s)", "%s",
+                  "new String'(%s)"),
+               json=Field_Type(
+                  "json", "String", "String", 'No_Update',
                   "GNAT.Strings.String_Access",
                   "null", "String_Value (%s, %s)",
                   "Str_Or_Empty (%s)", "Free (%s)", "%s",
