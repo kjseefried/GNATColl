@@ -489,22 +489,24 @@ package body GNATCOLL.SQL.Exec is
          return "<none>";
       else
          case Param.Typ is
-         when Parameter_Text    =>
-            return String_To_SQL (Format, Param.Str_Val.all, Quote => False);
-         when Parameter_Integer =>
-            return Integer_To_SQL (Format, Param.Int_Val, Quote => False);
-         when Parameter_Float   =>
-            return Float_To_SQL (Format, Param.Float_Val, Quote => False);
-         when Parameter_Boolean =>
-            return Boolean_To_SQL (Format, Param.Bool_Val, Quote => False);
-         when Parameter_Time =>
-            return Time_To_SQL (Format, Param.Time_Val, Quote => False);
-         when Parameter_Date =>
-            return Date_To_SQL (Format, Param.Date_Val, Quote => False);
-         when Parameter_Character =>
-            return String'(1 .. 1 => Param.Char_Val);
-         when Parameter_Money =>
-            return Money_To_SQL (Format, Param.Money_Val, Quote => False);
+            when Parameter_Text =>
+               return String_To_SQL (Format, Param.Str_Val.all, Quote => False);
+            when Parameter_Integer =>
+               return Integer_To_SQL (Format, Param.Int_Val, Quote => False);
+            when Parameter_Float =>
+               return Float_To_SQL (Format, Param.Float_Val, Quote => False);
+            when Parameter_Boolean =>
+               return Boolean_To_SQL (Format, Param.Bool_Val, Quote => False);
+            when Parameter_Time =>
+               return Time_To_SQL (Format, Param.Time_Val, Quote => False);
+            when Parameter_Date =>
+               return Date_To_SQL (Format, Param.Date_Val, Quote => False);
+            when Parameter_Character =>
+               return String'(1 .. 1 => Param.Char_Val);
+            when Parameter_Money =>
+               return Money_To_SQL (Format, Param.Money_Val, Quote => False);
+            when Parameter_Json =>
+               return Json_To_SQL (Format, Param.Json_Val.all, Quote => False);
          end case;
       end if;
    end Image;
@@ -650,19 +652,12 @@ package body GNATCOLL.SQL.Exec is
               (Connection, Error_Msg (DBMS_Forward_Cursor'Class (R.all)));
 
          elsif Active (Me_Query) then
-            declare
-               Q : constant String := Display_Query (Query, Prepared);
-            begin
-               if Q = "BEGIN" then
-                  Increase_Indent (Me_Query, "Start SQL transaction");
-               end if;
-
-               Trace
-                 (Me_Query,
-                  Q & Image (Connection.all, Params)
-                  & Get_Rows & " "
-                  & Status (DBMS_Forward_Cursor'Class (R.all)) & Get_User);
-            end;
+            Trace
+              (Me_Query,
+               Display_Query (Query, Prepared)
+               & Image (Connection.all, Params)
+               & Get_Rows & " "
+               & Status (DBMS_Forward_Cursor'Class (R.all)) & Get_User);
          end if;
       end if;
    end Post_Execute_And_Log;
@@ -729,9 +724,6 @@ package body GNATCOLL.SQL.Exec is
             Is_Commit_Or_Rollback :=
               Equal (Q.all, "commit", Case_Sensitive => False)
               or else Equal (Q.all, "rollback", Case_Sensitive => False);
-            if Is_Commit_Or_Rollback and then Active (Me_Query) then
-               Decrease_Indent (Me_Query, "Finish SQL transaction");
-            end if;
          end if;
 
          if Connection.In_Transaction
@@ -747,11 +739,12 @@ package body GNATCOLL.SQL.Exec is
          elsif Equal (Q.all, "begin", Case_Sensitive => False) then
             if not Connection.In_Transaction then
                Connection.In_Transaction := True;
+
             else
                --  Ignore silently: GNATCOLL might have started a transaction
                --  without the user knowing, for instance on the first SELECT
                --  statement if Always_Use_Transactions is true.
-               return;
+               null;
             end if;
 
          elsif not Connection.In_Transaction
@@ -1264,6 +1257,41 @@ package body GNATCOLL.SQL.Exec is
       return Time_Value (DBMS_Forward_Cursor'Class (Self.Res.all), Field);
    end Time_Value;
 
+   ---------------------
+   -- Json_Text_Value --
+   ---------------------
+
+   function Json_Text_Value
+     (Self  : Forward_Cursor;
+      Field : Field_Index) return UTF8_String is
+   begin
+      return UTF8_String
+        (Value (DBMS_Forward_Cursor'Class (Self.Res.all), Field));
+   end Json_Text_Value;
+
+   -----------------------
+   -- Json_Object_Value --
+   -----------------------
+
+   function Json_Object_Value
+     (Self  : Forward_Cursor;
+      Field : Field_Index) return JSON_Value
+   is
+      function To_Json
+        (V : in String)
+         return JSON_Value
+      is
+      begin
+         if V = "null" or V = "" then
+            return JSON_Null;
+         else
+            return Read (V, "Json_Object_Value.error");
+         end if;
+      end To_Json;
+   begin
+      return To_Json (Value (DBMS_Forward_Cursor'Class (Self.Res.all), Field));
+   end Json_Object_Value;
+
    -------------
    -- Is_Null --
    -------------
@@ -1686,6 +1714,16 @@ package body GNATCOLL.SQL.Exec is
    function "+" (Value : T_Money) return SQL_Parameter is
    begin
       return SQL_Parameter'(Typ => Parameter_Money, Money_Val => Value);
+   end "+";
+
+   ---------
+   -- "+" --
+   ---------
+
+   function "+" (Value : UTF8_String_Access) return SQL_Parameter is
+   begin
+      return SQL_Parameter'
+        (Typ => Parameter_Json, Json_Val => Value.all'Unchecked_Access);
    end "+";
 
    ----------

@@ -709,7 +709,6 @@ begin
 exception
    when Invalid_Type =>
       Set_Exit_Status (Failure);
-
    when E : others =>
       Ada.Text_IO.Put_Line
         (Ada.Text_IO.Standard_Error,

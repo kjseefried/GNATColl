@@ -48,6 +48,7 @@ package GNATCOLL.SQL.Inspect is
 
    type Field_Type_Kind is
      (Field_Text,
+      Field_Json,
       Field_Integer,
       Field_Date,
       Field_Time,

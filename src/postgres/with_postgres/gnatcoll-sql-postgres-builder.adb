@@ -1250,6 +1250,8 @@ package body GNATCOLL.SQL.Postgres.Builder is
             return '$' & Image (Index, 0) & "::date";
          when Parameter_Money =>
             return '$' & Image (Index, 0) & "::numeric";
+         when Parameter_Json =>
+            return '$' & Image (Index, 0) & "::json";
       end case;
    end Parameter_String;
 

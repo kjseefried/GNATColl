@@ -500,38 +500,41 @@ package body GNATCOLL.SQL.Sqlite.Builder is
             Bind_Null (Stmt, P);
          else
             case Params (P).Typ is
-            when Parameter_Text =>
-               Bind_Text (Stmt, P, Params (P).Str_Val.all'Address,
-                          Params (P).Str_Val'Length);
-            when Parameter_Character =>
-               Bind_Text (Stmt, P, Params (P).Char_Val'Address, 1);
-            when Parameter_Integer =>
-               Bind_Int (Stmt, P, Interfaces.C.int (Params (P).Int_Val));
-            when Parameter_Float =>
-               Bind_Double
-                 (Stmt, P, Interfaces.C.double (Params (P).Float_Val));
-            when Parameter_Boolean =>
-               Bind_Int
-                 (Stmt, P,
-                  Interfaces.C.int (Boolean'Pos (Params (P).Bool_Val)));
-            when Parameter_Time =>
-               Tmp_Data (P) := new String'
-                 (Time_To_SQL
-                    (Connection.all, Params (P).Time_Val, Quote => False));
-               Bind_Text
-                 (Stmt, P, Tmp_Data (P).all'Address, Tmp_Data (P)'Length);
+               when Parameter_Text =>
+                  Bind_Text (Stmt, P, Params (P).Str_Val.all'Address,
+                             Params (P).Str_Val'Length);
+               when Parameter_Character =>
+                  Bind_Text (Stmt, P, Params (P).Char_Val'Address, 1);
+               when Parameter_Integer =>
+                  Bind_Int (Stmt, P, Interfaces.C.Int (Params (P).Int_Val));
+               when Parameter_Float =>
+                  Bind_Double
+                    (Stmt, P, Interfaces.C.Double (Params (P).Float_Val));
+               when Parameter_Boolean =>
+                  Bind_Int
+                    (Stmt, P,
+                     Interfaces.C.Int (Boolean'Pos (Params (P).Bool_Val)));
+               when Parameter_Time =>
+                  Tmp_Data (P) := new String'
+                    (Time_To_SQL
+                       (Connection.all, Params (P).Time_Val, Quote => False));
+                  Bind_Text
+                    (Stmt, P, Tmp_Data (P).all'Address, Tmp_Data (P)'Length);
 
-            when Parameter_Date =>
-               Tmp_Data (P) := new String'
-                 (Date_To_SQL
-                    (Connection.all, Params (P).Time_Val, Quote => False));
-               Bind_Text
-                 (Stmt, P, Tmp_Data (P).all'Address, Tmp_Data (P)'Length);
+               when Parameter_Date =>
+                  Tmp_Data (P) := new String'
+                    (Date_To_SQL
+                       (Connection.all, Params (P).Time_Val, Quote => False));
+                  Bind_Text
+                    (Stmt, P, Tmp_Data (P).all'Address, Tmp_Data (P)'Length);
 
-            when Parameter_Money =>
-               --  In SQLite, Money type will be mapped as integer
-               Money_Int := Integer (Params (P).Money_Val / K_Delta);
-               Bind_Int (Stmt, P, Interfaces.C.int (Money_Int));
+               when Parameter_Money =>
+                  --  In SQLite, Money type will be mapped as integer
+                  Money_Int := Integer (Params (P).Money_Val / K_Delta);
+                  Bind_Int (Stmt, P, Interfaces.C.Int (Money_Int));
+               when Parameter_Json =>
+                  Bind_Text (Stmt, P, Params (P).Json_Val.all'Address,
+                             Params (P).Json_Val'Length);
             end case;
          end if;
       end loop;

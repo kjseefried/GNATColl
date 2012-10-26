@@ -103,6 +103,7 @@ with Ada.Calendar;
 with System;
 private with Ada.Finalization;
 private with GNATCOLL.Refcount;
+with GNATCOLL.JSON;             use GNATCOLL.JSON;
 with GNAT.Strings;
 
 package GNATCOLL.SQL.Exec is
@@ -152,15 +153,16 @@ package GNATCOLL.SQL.Exec is
 
    type SQL_Parameter (Typ : Parameter_Type := Parameter_Integer) is record
       case Typ is
-         when Parameter_Integer => Int_Val : Integer;
-         when Parameter_Text    => Str_Val : access constant String;
+         when Parameter_Integer   => Int_Val   : Integer;
+         when Parameter_Text      => Str_Val   : access constant String;
             --  references external string, to avoid an extra copy
-         when Parameter_Boolean => Bool_Val : Boolean;
-         when Parameter_Float   => Float_Val : Float;
-         when Parameter_Time    => Time_Val  : Ada.Calendar.Time;
-         when Parameter_Date    => Date_Val  : Ada.Calendar.Time;
-         when Parameter_Character => Char_Val : Character;
-         when Parameter_Money   => Money_Val : T_Money;
+         when Parameter_Boolean   => Bool_Val  : Boolean;
+         when Parameter_Float     => Float_Val : Float;
+         when Parameter_Time      => Time_Val  : Ada.Calendar.Time;
+         when Parameter_Date      => Date_Val  : Ada.Calendar.Time;
+         when Parameter_Character => Char_Val  : Character;
+         when Parameter_Money     => Money_Val : T_Money;
+         when Parameter_Json      => Json_Val  : UTF8_String_Access;
       end case;
    end record;
 
@@ -173,6 +175,7 @@ package GNATCOLL.SQL.Exec is
    function "+" (Value : Character) return SQL_Parameter;
    function "+" (Time : Ada.Calendar.Time) return SQL_Parameter;
    function "+" (Value : T_Money) return SQL_Parameter;
+   function "+" (Value : UTF8_String_Access) return SQL_Parameter;
 
    type SQL_Parameters is array (Positive range <>) of SQL_Parameter;
    No_Parameters : constant SQL_Parameters;
@@ -512,6 +515,10 @@ package GNATCOLL.SQL.Exec is
    function Time_Value
      (Self  : Forward_Cursor; Field : Field_Index) return Ada.Calendar.Time;
    --  Return a specific cell, converted to the appropriate format
+   function Json_Text_Value (Self : Forward_Cursor; Field : Field_Index)
+                             return UTF8_String;
+   function Json_Object_Value (Self : Forward_Cursor; Field : Field_Index)
+                               return JSON_Value;
 
    function Is_Null
      (Self  : Forward_Cursor; Field : Field_Index) return Boolean;
