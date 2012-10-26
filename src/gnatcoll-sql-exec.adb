@@ -652,12 +652,19 @@ package body GNATCOLL.SQL.Exec is
               (Connection, Error_Msg (DBMS_Forward_Cursor'Class (R.all)));
 
          elsif Active (Me_Query) then
-            Trace
-              (Me_Query,
-               Display_Query (Query, Prepared)
-               & Image (Connection.all, Params)
-               & Get_Rows & " "
-               & Status (DBMS_Forward_Cursor'Class (R.all)) & Get_User);
+            declare
+               Q : constant String := Display_Query (Query, Prepared);
+            begin
+               if Q = "BEGIN" then
+                  Increase_Indent (Me_Query, "Start SQL transaction");
+               end if;
+
+               Trace
+                 (Me_Query,
+                  Q & Image (Connection.all, Params)
+                  & Get_Rows & " "
+                  & Status (DBMS_Forward_Cursor'Class (R.all)) & Get_User);
+            end;
          end if;
       end if;
    end Post_Execute_And_Log;
@@ -724,6 +731,9 @@ package body GNATCOLL.SQL.Exec is
             Is_Commit_Or_Rollback :=
               Equal (Q.all, "commit", Case_Sensitive => False)
               or else Equal (Q.all, "rollback", Case_Sensitive => False);
+            if Is_Commit_Or_Rollback and then Active (Me_Query) then
+               Decrease_Indent (Me_Query, "Finish SQL transaction");
+            end if;
          end if;
 
          if Connection.In_Transaction
@@ -744,7 +754,7 @@ package body GNATCOLL.SQL.Exec is
                --  Ignore silently: GNATCOLL might have started a transaction
                --  without the user knowing, for instance on the first SELECT
                --  statement if Always_Use_Transactions is true.
-               null;
+               return;
             end if;
 
          elsif not Connection.In_Transaction
