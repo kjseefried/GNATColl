@@ -1,3 +1,5 @@
+src/lib
+src/obj
 Makefile.conf
 config.log
 config.status
