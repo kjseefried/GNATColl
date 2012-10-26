@@ -115,6 +115,44 @@ package body GNATCOLL.SQL.Exec_Private is
       end if;
    end Time_Value;
 
+   ---------------------
+   -- Json_Text_Value --
+   ---------------------
+
+   function Json_Text_Value
+     (Self  : DBMS_Forward_Cursor;
+      Field : Field_Index) return UTF8_String
+   is
+      V : constant String :=
+            Value (C_Value (DBMS_Forward_Cursor'Class (Self), Field));
+   begin
+      return UTF8_String (V);
+   end Json_Text_Value;
+
+   -----------------------
+   -- Json_Object_Value --
+   -----------------------
+
+   function Json_Object_Value
+     (Self  : DBMS_Forward_Cursor;
+      Field : Field_Index) return JSON_Value
+   is
+      function To_Json
+        (V : in String)
+         return JSON_Value
+      is
+      begin
+         if V = "null" or V = "" then
+            return JSON_Null;
+         else
+            return Read (V, "Json_Object_Value.error");
+         end if;
+      end To_Json;
+   begin
+      return To_Json
+        (Value (C_Value (DBMS_Forward_Cursor'Class (Self), Field)));
+   end Json_Object_Value;
+
    ----------------------------
    -- Generic_Direct_Cursors --
    ----------------------------

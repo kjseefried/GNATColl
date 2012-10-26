@@ -29,6 +29,7 @@
 --  API.
 
 with GNATCOLL.SQL.Exec;    use GNATCOLL.SQL.Exec;
+with GNATCOLL.JSON;        use GNATCOLL.JSON;
 with GNAT.Strings;         use GNAT.Strings;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 
@@ -94,6 +95,12 @@ private package GNATCOLL.SQL.Exec_Private is
    function Time_Value
      (Self  : DBMS_Forward_Cursor;
       Field : Field_Index) return Ada.Calendar.Time;
+   function Json_Text_Value
+     (Self  : DBMS_Forward_Cursor;
+      Field : Field_Index) return UTF8_String;
+   function Json_Object_Value
+     (Self  : DBMS_Forward_Cursor;
+      Field : Field_Index) return JSON_Value;
    --  Default implementation is to assume the DBMS only returns strings, and
    --  we convert them to the appropriate Ada type.
 
