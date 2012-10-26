@@ -514,11 +514,15 @@ package GNATCOLL.SQL.Exec is
      return T_Money;
    function Time_Value
      (Self  : Forward_Cursor; Field : Field_Index) return Ada.Calendar.Time;
+   function Json_Text_Value
+     (Self  : Forward_Cursor;
+      Field : Field_Index)
+      return UTF8_String;
+   function Json_Object_Value
+     (Self  : Forward_Cursor;
+      Field : Field_Index)
+      return JSON_Value;
    --  Return a specific cell, converted to the appropriate format
-   function Json_Text_Value (Self : Forward_Cursor; Field : Field_Index)
-                             return UTF8_String;
-   function Json_Object_Value (Self : Forward_Cursor; Field : Field_Index)
-                               return JSON_Value;
 
    function Is_Null
      (Self  : Forward_Cursor; Field : Field_Index) return Boolean;
