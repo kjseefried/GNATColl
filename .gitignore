@@ -1,3 +1,13 @@
+Makefile.conf
+config.log
+config.status
+distrib/gnatcoll.gpr
+distrib/gnatcoll_gmp.gpr
+distrib/gnatcoll_python.gpr
+gnatcoll_shared.gpr
+src/gnatcoll_gmp.gpr
+src/gnatcoll_python.gpr
+
 gnat/*.ad?
 gnat/snames*
 gnat/xsnamest
